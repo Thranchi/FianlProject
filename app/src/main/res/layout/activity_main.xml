@@ -9,25 +9,36 @@
     <Button
         android:id="@+id/btn_meal"
         android:onClick="onClick"
-        android:layout_width="10mm"
-        android:layout_height="10mm"
+        android:layout_width="20mm"
+        android:layout_height="20mm"
         android:text="밥"
-        android:layout_centerInParent="true" />
+        android:layout_below="@+id/qwe"
+        android:layout_centerHorizontal="true" />
+        <Button
+        android:id="@+id/qwe"
+         android:onClick="onClick"
+            android:clickable="false"
+            android:visibility="invisible"
+              android:layout_width="2mm"
+           android:layout_height="1mm"
+         android:text="밥"
+          android:layout_centerVertical="true"
+          android:layout_centerHorizontal="true" />
     <Button
         android:id="@+id/btn_bed"
         android:onClick="onClick"
-        android:layout_width="10mm"
-        android:layout_height="10mm"
+        android:layout_width="20mm"
+        android:layout_height="20mm"
         android:text="잠"
-        android:layout_centerInParent="true"
-        android:layout_toLeftOf="@+id/btn_meal" />
+        android:layout_above="@+id/qwe"
+        android:layout_toStartOf="@+id/qwe" />
     <Button
         android:id="@+id/btn_act"
         android:onClick="onClick"
-        android:layout_width="10mm"
-        android:layout_height="10mm"
+        android:layout_width="20mm"
+        android:layout_height="20mm"
         android:text="술"
-        android:layout_centerInParent="true"
-        android:layout_toRightOf="@+id/btn_meal" />
+        android:layout_above="@+id/qwe"
+        android:layout_toEndOf="@+id/qwe" />
 
 </RelativeLayout>
