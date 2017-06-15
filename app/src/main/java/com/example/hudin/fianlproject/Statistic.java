@@ -1,6 +1,8 @@
 package com.example.hudin.fianlproject;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.test.RenamingDelegatingContext;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,41 +37,41 @@ import static java.security.AccessController.getContext;
 
 public class Statistic extends AppCompatActivity {
 
-    SQLiteDatabase database ;
-    ListView listview ;
+    SQLiteDatabase database;
+    ListView listview;
     ListViewAdapter adapter;
     MainActivity main;
-    int index=0;
-    ArrayList<String> checkbox=new ArrayList<>();
+    int index = 0;
+    ArrayList<String> checkbox = new ArrayList<>();
 
-    int ddate=0;
+    int ddate = 0;
 
-    int dbreakfast=0;
-    int dlunch=0;
-    int ddinner=0;
-    int dsleep=0;
-    int dwake=0;
-    int dalchol=0;
-    int dculture=0;
-
+    int dbreakfast = 0;
+    int dlunch = 0;
+    int ddinner = 0;
+    int dsleep = 0;
+    int dwake = 0;
+    int dalchol = 0;
+    int dculture = 0;
+    final Context context = this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_statistic);
 
-        main=new MainActivity();
+        main = new MainActivity();
 
         // Adapter 생성
-        adapter = new ListViewAdapter(this) ;
-        database=openOrCreateDatabase("sample.db",MODE_PRIVATE,null);
+        adapter = new ListViewAdapter(this);
+        database = openOrCreateDatabase("sample.db", MODE_PRIVATE, null);
         //Toast.makeText(this, "테스트중"+"으로 생성성공", Toast.LENGTH_SHORT).show();
 
         try {
             createSQL();
-            Toast.makeText(this,"생성은 돼",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "생성은 돼", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
-            Toast.makeText(this,"생성도안돼",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "생성도안돼", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
         getFile();
@@ -78,30 +81,80 @@ public class Statistic extends AppCompatActivity {
         listview.setAdapter(adapter);
 
         // 첫 번째 아이템 추가.
-        adapter.addItem(ContextCompat.getDrawable(this,R.drawable.mon),
-                ++index+" 번째 하루",0601+"") ;
+        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.mon),
+                ++index + " 번째 하루", "20160601");
         // 두 번째 아이템 추가.
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.wed),
-                ++index+" 번째 하루","0602") ;
+                ++index + " 번째 하루", "0602");
         // 세 번째 아이템 추가.
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.thu),
-                ++index+" 번째 하루",0603+"") ;
+                ++index + " 번째 하루", getThisday()+"");
 
         // 위에서 생성한 listview에 클릭 이벤트 핸들러 정의.
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id) {
                 // get item
-                ListViewItem item = (ListViewItem) parent.getItemAtPosition(position) ;
+                ListViewItem item = (ListViewItem) parent.getItemAtPosition(position);
 
-                String titleStr = item.getTitle() ;
-                String descStr = item.getDesc() ;
-                Drawable iconDrawable = item.getIcon() ;
+                String descStr = item.getDesc();
 
-                // TODO : use item data.
+                String breakfast=sqlselect(Integer.parseInt(descStr), "brtime");
+                String luntime=sqlselect(Integer.parseInt(descStr), "luntime");
+                String dintime=sqlselect(Integer.parseInt(descStr), "dintime");
+                String waketime=sqlselect(Integer.parseInt(descStr), "waketime");
+                String bedtime=sqlselect(Integer.parseInt(descStr), "bedtime");
+                String alcohol=sqlselect(Integer.parseInt(descStr), "alcohol");
+                String exercise=sqlselect(Integer.parseInt(descStr), "exercise");
+                String culture=sqlselect(Integer.parseInt(descStr), "culture");
+
+                breakfast=nullize(breakfast);
+                luntime=nullize(luntime);
+                dintime=nullize(dintime);
+                waketime=nullize(waketime);
+                bedtime=nullize(bedtime);
+                alcohol=nullize(alcohol);
+                exercise=nullize(exercise);
+                culture=nullize(culture);
+
+
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                        context);
+
+                // 제목셋팅
+                alertDialogBuilder.setTitle("하루보기");
+
+                // AlertDialog 셋팅
+                alertDialogBuilder
+                        .setMessage("아침식사 : "+breakfast+"\n" +
+                                "점심식사 : "+luntime+"\n" +
+                                "저녁식사 : "+dintime+"\n" +
+                                "기상시간 : "+waketime+"\n" +
+                                "취침시간 : "+bedtime+"\n" +
+                                "술 자 리 : "+alcohol+"\n" +
+                                "운    동 : "+exercise+"\n" +
+                                "문화생활 : "+culture+"\n"
+                                )
+                        .setCancelable(false)
+                        .setNegativeButton("취소",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(
+                                            DialogInterface dialog, int id) {
+                                        // 다이얼로그를 취소한다
+                                        dialog.cancel();
+                                    }
+                                });
+
+                // 다이얼로그 생성
+                AlertDialog alertDialog = alertDialogBuilder.create();
+
+                // 다이얼로그 보여주기
+                alertDialog.show();
+
             }
-        }) ;
+        });
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.statisticmenu, menu);
@@ -129,45 +182,44 @@ public class Statistic extends AppCompatActivity {
     }
 
     public void onClick(View v) {
-        if(v.getId()==R.id.comebackhome) {
+        if (v.getId() == R.id.comebackhome) {
             Intent intent = new Intent(Statistic.this, MainActivity.class);
             startActivity(intent);
-        }
-        else if(v.getId()==R.id.Showstatistic) {
+        } else if (v.getId() == R.id.Showstatistic) {
 
         }
     }
 
-    public void updatedate(int date){
-        for(int i=0;i<checkbox.size();i++){
-            if(checkbox.get(i).equals(getThisday()+""))
+    public void dateupdatedate(int date) {
+        for (int i = 0; i < checkbox.size(); i++) {
+            if (checkbox.get(i).equals(getThisday() + ""))
                 return;
         }
 
         try {
-            adapter.addItem(drawablefinder(sunmontue()),++index+" 번째 하루",date+"");
+            adapter.addItem(drawablefinder(sunmontue()), ++index + " 번째 하루", date + "");
         } catch (ParseException e) {
             e.printStackTrace();
         }
     }
 
     public int sunmontue() throws ParseException {
-        int day=0;
+        int day = 0;
 
         Date d = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String showdate = "" + sdf.format(d);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd") ;
-        Date nDate = dateFormat.parse(showdate) ;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date nDate = dateFormat.parse(showdate);
 
-        Calendar cal = Calendar.getInstance() ;
+        Calendar cal = Calendar.getInstance();
         cal.setTime(nDate);
 
-        int dayNum = cal.get(Calendar.DAY_OF_WEEK) ;
+        int dayNum = cal.get(Calendar.DAY_OF_WEEK);
 
 
-        return dayNum ;
+        return dayNum;
     }
 
     public int getThisday() {
@@ -180,8 +232,8 @@ public class Statistic extends AppCompatActivity {
         return calculdate;
     }
 
-    public Drawable drawablefinder(int dayNum){
-        switch(dayNum){
+    public Drawable drawablefinder(int dayNum) {
+        switch (dayNum) {
             case 1:
                 return getResources().getDrawable(R.drawable.sun);
             case 2:
@@ -227,15 +279,15 @@ public class Statistic extends AppCompatActivity {
         }
     }
 
-    public String sqlselect() {
-        String sql1 = "select name from everydayismine";
+    public String sqlselect(int date, String key) {
+        String sql1 = "select "+key+" from "+key+" where date="+date;
 
         try {
             Cursor recordset = database.rawQuery(sql1, null);
             recordset.moveToFirst();
-            String str = "이거 안되네";
+            String str = "";
             do {
-                str += recordset.getInt(1) + "/"+ "\n";
+                str += recordset.getInt(0);
             } while (recordset.moveToNext());
             recordset.close();
             return str;
@@ -247,15 +299,17 @@ public class Statistic extends AppCompatActivity {
     }
 
     public void createSQL() throws IOException {
+        /*
         BufferedWriter bw = new BufferedWriter(new FileWriter(getFilesDir() + "db.txt", true));
         String clear = "";
             /* INSERT 문을 사용하여 테이블에 데이터 추가. */
+        /*
         bw.write(clear);
-        bw.close();
+        bw.close();*/
 
         String breakfast = "create table if not exists brtime(\n" +
                 "date integer primary key,\n" +
-                "brtime integer,\n" +
+                "brtime integer\n" +
                 ")\n";
 
         String lunch = "create table if not exists luntime(\n" +
@@ -293,6 +347,8 @@ public class Statistic extends AppCompatActivity {
                 "culture integer\n" +
                 ")\n";
 
+        String test="insert into brtime values (0900,20160601)";
+
         try {
             database.execSQL(breakfast);
             database.execSQL(lunch);
@@ -302,14 +358,17 @@ public class Statistic extends AppCompatActivity {
             database.execSQL(alchol);
             database.execSQL(exercise);
             database.execSQL(culture);
-
+            database.execSQL(test);
+            database.close();
+            Toast.makeText(this,"잘만들어졌다",Toast.LENGTH_SHORT).show();
             //goToast("하루 테이블 생성");
         } catch (SQLiteException e) {
+            Toast.makeText(this,"잘안된다",Toast.LENGTH_SHORT).show();
             //goToast("이미 있는겁니다");
         }
     }
 
-    public void inputDataToTable(int date, String table ,int dbreakfast){
+    public void inputDataToTable(int date, String table, int dbreakfast) {
         /*String sql1 = "select date from "+table;
         String newsqltext="";
         try{
@@ -329,7 +388,7 @@ public class Statistic extends AppCompatActivity {
                 }
             }
             if(heishere)*/
-        String newsqltext = "INSERT OR REPLACE INTO "+table+" VALUES (" + date + ","+dbreakfast+")";
+        String newsqltext = "INSERT OR REPLACE INTO " + table + " VALUES (" + date + "," + dbreakfast + ")";
           /*  else{
                 recordset.close();
                 return;}
@@ -340,6 +399,7 @@ public class Statistic extends AppCompatActivity {
 */
         try {
             /* INSERT 문을 사용하여 테이블에 데이터 추가. */
+
             database.execSQL(newsqltext);
             BufferedWriter bw = null;
             bw = new BufferedWriter(new FileWriter(getFilesDir() + "db.txt", true));
@@ -368,26 +428,24 @@ public class Statistic extends AppCompatActivity {
             Cursor recordset = database.rawQuery(sql1, null);
             recordset.moveToFirst();
             boolean heishere = false;
-            for(int i=0;;i++){
-                if(recordset.getInt(i)==date){
-                    heishere=true;
+            for (int i = 0; ; i++) {
+                if (recordset.getInt(i) == date) {
+                    heishere = true;
                     break;
                 }
-                if(recordset.moveToNext()){
+                if (recordset.moveToNext()) {
                     recordset.moveToNext();
-                }
-                else {
+                } else {
                     break;
                 }
             }
             recordset.close();
-            String newsqltext ="";
-            if(heishere) {
+            String newsqltext = "";
+            if (heishere) {
                 newsqltext = "INSERT OR REPLACE INTO everydayismine (" + key + ") VALUES (" + data + ") where date=" + date;
-                updatedate(date);
-            }
-            else
-                newsqltext = "INSERT OR REPLACE INTO everydayismine ("+date +"," + key + ") VALUES ("+date +"," + data + ")";
+                dateupdatedate(date);
+            } else
+                newsqltext = "INSERT OR REPLACE INTO everydayismine (" + date + "," + key + ") VALUES (" + date + "," + data + ")";
 
             /* INSERT 문을 사용하여 테이블에 데이터 추가. */
             readStr = readStr + newsqltext;
@@ -426,125 +484,67 @@ public class Statistic extends AppCompatActivity {
 
     }
 
-    public int counttime(String key){
-        String sqlSelect = "SELECT COUNT("+key+") FROM everydayismine;";
-        Cursor cursor = null ;
-        int val=0;
+    public int counttime(String key) {
+        String sqlSelect = "SELECT COUNT(" + key + ") FROM everydayismine;";
+        Cursor cursor = null;
+        int val = 0;
 
-        cursor = database.rawQuery(sqlSelect,null) ;
+        cursor = database.rawQuery(sqlSelect, null);
         cursor.moveToFirst();
         while (cursor.moveToNext()) {
-            val = cursor.getInt(0) ;
+            val = cursor.getInt(0);
         }
         cursor.close();
         return val;
     }
 
-    public int avgtime(String key){
-        String sqlSelect = "SELECT "+key+" FROM everydayismine;";
-        Cursor cursor = null ;
-        int i=0;
-        int val=0;
-        int sum=0;
-        cursor = database.rawQuery(sqlSelect,null) ;
+    public int avgtime(String key) {
+        String sqlSelect = "SELECT " + key + " FROM everydayismine;";
+        Cursor cursor = null;
+        int i = 0;
+        int val = 0;
+        int sum = 0;
+        cursor = database.rawQuery(sqlSelect, null);
         cursor.moveToFirst();
         while (cursor.moveToNext()) {
-            val = cursor.getInt(i) ;
-            val=inttodate(val);
-            sum=sum+val;
+            val = cursor.getInt(i);
+            val = inttodate(val);
+            sum = sum + val;
         }
         cursor.close();
-        return datetoint(sum/i);
+        return datetoint(sum / i);
     }
 
 
-    public int inttodate(int original){
-        String str=original+"";
-        int i=str.length();
-        int result=0;
+    public int inttodate(int original) {
+        String str = original + "";
+        int i = str.length();
+        int result = 0;
         String temp;
-        String s1 = str.substring(12) ;
+        String s1 = str.substring(12);
 
-        if(i==3){
-            temp=str.substring(0,1);
-            return result=Integer.parseInt(temp)*60+Integer.parseInt(str.substring(2));
-        }
-        else if(i==4){
-            temp=str.substring(0,2);
-            return result=Integer.parseInt(temp)*60+Integer.parseInt(str.substring(3));
+        if (i == 3) {
+            temp = str.substring(0, 1);
+            return result = Integer.parseInt(temp) * 60 + Integer.parseInt(str.substring(2));
+        } else if (i == 4) {
+            temp = str.substring(0, 2);
+            return result = Integer.parseInt(temp) * 60 + Integer.parseInt(str.substring(3));
         }
         return 0;
     }
 
-    public int datetoint(int original){
-        int temphour=original/60;
-        int tempmin=original%60;
-        String tempresult=temphour+""+tempmin;
+    public int datetoint(int original) {
+        int temphour = original / 60;
+        int tempmin = original % 60;
+        String tempresult = temphour + "" + tempmin;
 
         return Integer.parseInt(tempresult);
     }
 
-    public int getDdate() {
-        return ddate;
-    }
-
-    public void setDdate(int ddate) {
-        this.ddate = ddate;
-    }
-
-    public int getDbreakfast() {
-        return dbreakfast;
-    }
-
-    public void setDbreakfast(int date, String table ,int dbreakfast) {
-        this.dbreakfast = dbreakfast;
-    }
-
-    public int getDlunch() {
-        return dlunch;
-    }
-
-    public void setDlunch(int dlunch) {
-        this.dlunch = dlunch;
-    }
-
-    public int getDdinner() {
-        return ddinner;
-    }
-
-    public void setDdinner(int ddinner) {
-        this.ddinner = ddinner;
-    }
-
-    public int getDsleep() {
-        return dsleep;
-    }
-
-    public void setDsleep(int dsleep) {
-        this.dsleep = dsleep;
-    }
-
-    public int getDwake() {
-        return dwake;
-    }
-
-    public void setDwake(int dwake) {
-        this.dwake = dwake;
-    }
-
-    public int getDalchol() {
-        return dalchol;
-    }
-
-    public void setDalchol(int dalchol) {
-        this.dalchol = dalchol;
-    }
-
-    public int getDculture() {
-        return dculture;
-    }
-
-    public void setDculture(int dculture) {
-        this.dculture = dculture;
+    public String nullize(String word){
+        if(word.length()==0)
+            return word="해당사항 없음";
+        else
+            return word;
     }
 }
