@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/refresh"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="새로고침" />​
+
+    <item
+        android:title="파일"
+        android:id="@+id/file">
+        <menu>
+            <item
+                android:id="@+id/open"
+                android:icon="@android:drawable/ic_input_add"
+                android:title="가져오기" />​
+
+            <item
+                android:id="@+id/save"
+                android:icon="@android:drawable/ic_input_add"
+                android:title="내보내기" />​
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/gotohell"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="초기화" />​
+</menu>
