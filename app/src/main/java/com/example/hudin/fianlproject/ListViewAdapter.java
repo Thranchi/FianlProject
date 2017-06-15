@@ -11,11 +11,21 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import static com.example.hudin.fianlproject.R.drawable.fri;
+import static com.example.hudin.fianlproject.R.drawable.mon;
+import static com.example.hudin.fianlproject.R.drawable.sat;
+import static com.example.hudin.fianlproject.R.drawable.sun;
+import static com.example.hudin.fianlproject.R.drawable.thu;
+import static com.example.hudin.fianlproject.R.drawable.tue;
+import static com.example.hudin.fianlproject.R.drawable.wed;
+
 /**
  * Created by hudin on 2017-06-15.
  */
 
 public class ListViewAdapter extends BaseAdapter {
+    ListViewItem item=new ListViewItem();
+
     // Adapter에 추가된 데이터를 저장하기 위한 ArrayList
     private ArrayList<ListViewItem> listViewItemList = new ArrayList<ListViewItem>() ;
     Context context;
@@ -82,6 +92,4 @@ public class ListViewAdapter extends BaseAdapter {
 
         listViewItemList.add(item);
     }
-
-
 }

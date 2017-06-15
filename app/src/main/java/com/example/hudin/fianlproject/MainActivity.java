@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,11 +23,21 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+
+import static com.example.hudin.fianlproject.R.drawable.fri;
+import static com.example.hudin.fianlproject.R.drawable.mon;
+import static com.example.hudin.fianlproject.R.drawable.sat;
+import static com.example.hudin.fianlproject.R.drawable.thu;
+import static com.example.hudin.fianlproject.R.drawable.tue;
+import static com.example.hudin.fianlproject.R.drawable.wed;
 
 public class MainActivity extends AppCompatActivity {
 
+    ListViewItem ListViewItem=new ListViewItem();
     SQLiteDatabase database;
     Button btn_meal, btn_bed, btn_act;
     int inputTime = 0, inputDate = 0;
@@ -36,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     boolean ifitistrueitismorning = true;
     String whatisthis;
     int todaytodayohglorytoday = 0;
+    int index=0;
+    int actstatus=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         btn_act = (Button) findViewById(R.id.btn_act);
 
         database=openOrCreateDatabase("테스트중",MODE_PRIVATE,null);
-        Toast.makeText(this, "테스트중"+"으로 생성성공", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "테스트중"+"으로 생성성공", Toast.LENGTH_SHORT).show();
 
         try {
             createSQL();
@@ -57,6 +70,28 @@ public class MainActivity extends AppCompatActivity {
         getFile();
 
 
+        btn_act.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (actstatus==0) {
+                    actTime = getThistime();
+                    goToast(actTime + "");
+                    whatisthis = "alchol";
+                    makeFile(todaytodayohglorytoday, actTime, whatisthis);
+                } else if (actstatus==1) {
+                    actTime = getThistime();
+                    goToast(actTime + "");
+                    whatisthis = "exercise";
+                    makeFile(todaytodayohglorytoday, actTime, whatisthis);
+                } else if (actstatus==2) {
+                    actTime = getThistime();
+                    goToast(actTime + "");
+                    whatisthis = "culture";
+                    makeFile(todaytodayohglorytoday, actTime, whatisthis);
+                }
+            return true;
+            }
+        });
     }
 
     @Override
@@ -77,8 +112,8 @@ public class MainActivity extends AppCompatActivity {
         }
         //불러오기
         else if (item.getItemId() == R.id.open) {
-            goToast(sqlselect());
-
+            String k=sqlselect();
+            Toast.makeText(this,k+"망했냐",Toast.LENGTH_SHORT).show();
         }
         //저장
         else if (item.getItemId() == R.id.save) {
@@ -93,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClick(View v) {
         if (v.getId() == R.id.btn_meal) {
+
             inputTime = getThistime();
             if (inputTime > 0600 && inputTime < 1030) {
                 breackfast = inputTime;
@@ -120,28 +156,22 @@ public class MainActivity extends AppCompatActivity {
                 whatisthis = "bedtime";
                 makeFile(todaytodayohglorytoday, sleepTime, whatisthis);
             }
-        } else if (v.getId() == R.id.btn_act) {
-            if (btn_act.getText().toString().equals("alchol")) {
-                actTime = getThistime();
-                goToast(actTime + "");
-                whatisthis = "alchol";
-                makeFile(todaytodayohglorytoday, actTime, whatisthis);
-            } else if (btn_act.getText().toString().equals("exercise")) {
-                actTime = getThistime();
-                goToast(actTime + "");
-                whatisthis = "exercise";
-                makeFile(todaytodayohglorytoday, actTime, whatisthis);
-            } else if (btn_act.getText().toString().equals("culture")) {
-                actTime = getThistime();
-                goToast(actTime + "");
-                whatisthis = "culture";
-                makeFile(todaytodayohglorytoday, actTime, whatisthis);
+        } else {
+            if (v.getId() == R.id.btn_act) {
+                actstatus++;
+                if (actstatus%3 == 0) {
+                    btn_act.setBackground(getResources().getDrawable(R.drawable.alcohol));
+                } else if (actstatus%3 == 1) {
+                    btn_act.setBackground(getResources().getDrawable(R.drawable.exercise));
+                } else if (actstatus%3 == 2) {
+                    btn_act.setBackground(getResources().getDrawable(R.drawable.culture));
+                }
             }
         }
     }
 
     public void goToast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
     public int getThisday() {
@@ -180,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 "exercise integer\n" +
                 "culture integer\n" +
                 ")\n";
-        String testing = "INSERT INTO everydayismine (date) VALUES (" + 333 + ")";
+        String testing = "INSERT OR REPLACE INTO everydayismine (date) VALUES (" + getThisday() + ")";
         try {
             database.execSQL(sql);
             database.execSQL(testing);
@@ -222,21 +252,21 @@ public class MainActivity extends AppCompatActivity {
             }
             String newsqltext ="";
             if(heishere)
-                newsqltext = "INSERT INTO everydayismine ("+ key +") VALUES (" + data + ") where date=" + date;
+                newsqltext = "INSERT OR REPLACE INTO everydayismine ("+ key +") VALUES (" + data + ") where date=" + date;
             else
-                newsqltext = "INSERT INTO everydayismine ("+date +"," + key + ") VALUES ("+date +"," + data + ")";
+                newsqltext = "INSERT OR REPLACE INTO everydayismine ("+date +"," + key + ") VALUES ("+date +"," + data + ")";
 
             /* INSERT 문을 사용하여 테이블에 데이터 추가. */
             readStr = readStr + newsqltext;
             bw.write(readStr);
             bw.close();
-            Toast.makeText(this, "저장완료", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "저장완료", Toast.LENGTH_SHORT).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -256,11 +286,67 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+    }
+
+    public int counttime(String key){
+        String sqlSelect = "SELECT COUNT("+key+") FROM everydayismine;";
+        Cursor cursor = null ;
+        int val=0;
+
+        cursor = database.rawQuery(sqlSelect,null) ;
+        cursor.moveToFirst();
+        while (cursor.moveToNext()) {
+            val = cursor.getInt(0) ;
+        }
+        return val;
+    }
+
+    public int avgtime(String key){
+        String sqlSelect = "SELECT "+key+" FROM everydayismine;";
+        Cursor cursor = null ;
+        int i=0;
+        int val=0;
+        int sum=0;
+        cursor = database.rawQuery(sqlSelect,null) ;
+        cursor.moveToFirst();
+        while (cursor.moveToNext()) {
+            val = cursor.getInt(i) ;
+            val=inttodate(val);
+            sum=sum+val;
+        }
+
+        return datetoint(sum/i);
+    }
+
+    public int inttodate(int original){
+        String str=original+"";
+        int i=str.length();
+        int result=0;
+        String temp;
+        String s1 = str.substring(12) ;
+
+        if(i==3){
+            temp=str.substring(0,1);
+            return result=Integer.parseInt(temp)*60+Integer.parseInt(str.substring(2));
+        }
+        else if(i==4){
+            temp=str.substring(0,2);
+            return result=Integer.parseInt(temp)*60+Integer.parseInt(str.substring(3));
+        }
+        return 0;
+    }
+
+    public int datetoint(int original){
+        int temphour=original/60;
+        int tempmin=original%60;
+        String tempresult=temphour+""+tempmin;
+
+        return Integer.parseInt(tempresult);
     }
 
     public void clearall() {
@@ -273,25 +359,25 @@ public class MainActivity extends AppCompatActivity {
             /* INSERT 문을 사용하여 테이블에 데이터 추가. */
             bw.write(clear);
             bw.close();
-            Toast.makeText(this, "저장완료", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "저장완료", Toast.LENGTH_SHORT).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     public String sqlselect() {
-        String sql1 = "select date from everydayismine";
+        String sql1 = "select name from everydayismine";
 
         try {
             Cursor recordset = database.rawQuery(sql1, null);
             recordset.moveToFirst();
             String str = "이거 안되네";
             do {
-                str += recordset.getInt(0) + "/"+ "\n";
+                str += recordset.getInt(1) + "/"+ "\n";
             } while (recordset.moveToNext());
             recordset.close();
             return str;
@@ -300,4 +386,107 @@ public class MainActivity extends AppCompatActivity {
         }
         return "스큐엘 테스트 실패";
     }
+
+    public int sunmontue() throws ParseException {
+        int day=0;
+
+        Date d = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String showdate = "" + sdf.format(d);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd") ;
+        Date nDate = dateFormat.parse(showdate) ;
+
+        Calendar cal = Calendar.getInstance() ;
+        cal.setTime(nDate);
+
+        int dayNum = cal.get(Calendar.DAY_OF_WEEK) ;
+
+
+        return day ;
+    }
+
+    public Drawable drawablefinder(int dayNum){
+        switch(dayNum){
+            case 1:
+                return getResources().getDrawable(R.drawable.sun);
+            case 2:
+                return getResources().getDrawable(R.drawable.mon);
+
+            case 3:
+                return getResources().getDrawable(R.drawable.tue);
+
+            case 4:
+                return getResources().getDrawable(R.drawable.wed);
+
+            case 5:
+                return getResources().getDrawable(R.drawable.thu);
+
+            case 6:
+                return getResources().getDrawable(R.drawable.fri);
+
+            case 7:
+                return getResources().getDrawable(R.drawable.sat);
+
+
+        }
+        return null;
+    }
+
+    class  checktime extends AsyncTask<Integer,Integer,Void> {
+
+        public int getThistime() {
+            Date d = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("hhmm");
+            int calculdate = Integer.parseInt(sdf.format(d).toString());
+
+            return calculdate;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            todaytodayohglorytoday=getThisday();
+        }
+
+        @Override
+        protected Void doInBackground(Integer... params) {
+            //isCancelled가 트루이면 온 프로그레스업데이트로 안간다 바로 캔슬로 간다
+            if(isCancelled()==true) return null;
+            while (true) {
+                try {
+                    Thread.sleep(180000);
+                    todaytodayohglorytoday=getThisday();
+                    publishProgress(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            int inputTime=getThistime();
+
+            if (inputTime < 0600 || inputTime > 2100) {
+                btn_meal.setClickable(false);
+            }
+            else
+                btn_meal.setClickable(true);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected void onCancelled() {
+
+            super.onCancelled();
+
+        }
+    }
 }
+
